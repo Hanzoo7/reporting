@@ -1,0 +1,5 @@
+---
+# defaults file for outputJson
+hostname: "localhost"
+inputJsonDatas: "output registered from a playbook or role " 
+path: "path to create files"

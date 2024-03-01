@@ -1,0 +1,11 @@
+---
+# defaults file for transfertToXlsx
+hostname: "{{ ansible_hostname }}"
+workbook: "../files/test.xlsx"
+worksheet: "test"
+datas: "../files/test.json"
+columns: "A2"
+freezeRows: 1
+formatHeaders: True
+headColor: 'B2ABE8'
+addDate: True

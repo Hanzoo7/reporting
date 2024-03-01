@@ -1,0 +1,12 @@
+---
+# tasks file for outputJson
+
+- name: create directory - {{ path }}
+  file:
+    path: "{{ path }}"
+    state: directory
+
+- name: write json files to {{ path }}
+  copy:
+    content: "{{ inputJsonDatas | to_nice_json }}"
+    dest: "{{ path }}/{{ hostname }}.json"

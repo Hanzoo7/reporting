@@ -1,0 +1,57 @@
+---
+# tasks file for transfertToXlsx
+#
+
+- name: debug
+  debug:
+    msg: "{{ workbook }}"
+
+
+- name: get folder modification date
+  stat:
+    path: "{{ inputsFolder }}"
+  register: inputsFolderStats
+
+- name: format date 
+  debug:
+    msg: "{{ '%d-%m-%Y_%H%M' | strftime(inputsFolderStats.stat.mtime) }}"
+  register: date
+
+- name: enum "{{ inputsFolder }}" files
+  find:
+    path: "{{ inputsFolder }}"
+    patterns: "*.json"
+  register: jsonFiles
+
+- name: create xlsx workbook - "{{ workbook }}"
+  createExcelWorkbook:
+    workbook: "{{ workbook }}"
+
+- name: set worksheet fullname 
+  debug:
+    msg: '{{ worksheet }} {{ date.msg  if addDate == True else ""}}'
+  register: worksheetFullname
+
+- name: Create xlsx worksheet - "{{ worksheetFullname.msg }}"
+  createExcelWorksheet:
+    workbook: "{{ workbook }}"
+    worksheet:  "{{ worksheetFullname.msg  }}" 
+    datas: "{{ lookup('file','{{ jsonFiles.files.0.path }}') | from_json | json_query('message') }}" 
+
+- name: write datas to - "{{ workbook }}"
+  appendExcelWorksheet:
+    hostname: "{{ jsonItem.path | basename | regex_replace('\\.json$','') }}" 
+    workbook: "{{ workbook }}"
+    worksheet: "{{ worksheetFullname.msg  }}"
+    datas: "{{ lookup('file','{{ jsonItem.path }}') | from_json | json_query('message') }}"
+  with_items: "{{ jsonFiles.files }}"
+  loop_control:
+    loop_var: jsonItem
+
+- name: format worksheet - "{{ worksheetFullname.msg  }}" 
+  formatExcelWorksheet:
+    workbook: "{{ workbook }}"
+    worksheet:  "{{ worksheetFullname.msg  }}"
+    freezeRows: "{{ freezeRows }}"
+    formatHeaders: "{{ formatHeaders }}"
+    headColor: "{{ headColor }}"
