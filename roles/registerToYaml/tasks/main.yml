@@ -1,0 +1,5 @@
+---
+# tasks file for registerToYaml
+- name: debug
+  debug:
+    msg: "OK"
