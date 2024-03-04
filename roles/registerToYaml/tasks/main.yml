@@ -1,5 +1,8 @@
 ---
 # tasks file for registerToYaml
-- name: debug
-  debug:
-    msg: "OK"
+- name: ensure datas 
+  writeYaml:
+    nodeName: "{{ inventory_hostname }}"
+    content: "{{ inputs }}"
+    dest: "{{ file }}"
+  delegate_to: localhost

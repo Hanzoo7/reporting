@@ -1,5 +1,18 @@
 ---
 - hosts: localhost
-  remote_user: root
-  roles:
-    - registerToYaml
+  gather_facts: true
+
+  tasks:
+    - name: Get the status of all services
+      service_facts:
+      register: services
+
+- hosts: localhost
+  
+  tasks:
+    - include_role:
+        name: registerToYaml
+      vars:
+        inputs: "{{ services }}"
+
+
