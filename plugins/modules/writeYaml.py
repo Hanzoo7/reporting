@@ -3,7 +3,35 @@
 #initial release 04/03/2024
 
 from ansible.module_utils.basic import AnsibleModule
-import os, re
+from deepdiff import DeepDiff, Delta
+import os, sys, yaml
+
+def get_resources(dest, nodeName):
+    nodecontent = None
+    destcontent = None
+    
+    if os.path.exists(dest):
+        destcontent=yaml.safe_load((open(dest, 'r')).read())
+        
+        if nodeName in destcontent.keys():
+            nodecontent=destcontent[nodeName]
+
+    return nodecontent
+
+def test_resources(get,ref):
+    diff=DeepDiff(get, ref ,ignore_order=True, report_repetition=True)
+    return diff
+
+def set_resources(ref, dest, diff, nodeName):
+    destcontent=yaml.safe_load((open(dest, 'r')).read())
+    destcontent.update({nodeName:ref})
+
+
+    #Write to file
+
+
+
+    return destcontent
 
 def main():
     #region params
@@ -12,7 +40,6 @@ def main():
         content = dict(required=True, type='dict'),
         dest = dict(required=True, type='str'),
         )
-
     #endregion
 
     #region ansible
@@ -27,96 +54,30 @@ def main():
 
     result = dict(
         changed=False,
-        skipped=True,
+        skipped=False,
         message=None
     )
     #endregion
 
-    #region get
+    try:       
+        get = get_resources(dest, nodeName)
+        result['message']=get
+        test = test_resources(get=get,ref=content)
+        
+        if module.check_mode:
+            result['skipped'] = True
+            module.exit_json(**result)        
 
+        if test != {}:
+            set = set_resources(content, dest, test, nodeName)
+            result['message'] = set
+            result['changed'] = True
 
+    except:
+        result['message'] = sys.exc_info()[1]
 
-
-
-
-
-
-
-
-
-
-
-
-    output=None
-    wb=load_workbook(workbook)
-    ws=wb[worksheet]
-
-    output=worksheet
-    result["message"]=output
-    result["skipped"]=False
-    #endregion
-
-    #region test
-    compliant=True
-
-    line=2
-    matched=False
-
-    while ws['A'+str(line)].value and matched==False:
-        if ws['A'+str(line)].value == hostname:
-            matched=True
-
-        line=line+1
-
-    if matched:
-        result["message"]='Values from "'+hostname+'" are in file.'
-
-    else:
-       compliant=False
-
-    if module.check_mode:
-        wb.close()
+    finally:
         module.exit_json(**result)
-    #endregion
-
-    #region set
-    if not compliant:
-        ##write datas to worksheet
-        line = 2
-        countAddedLine=0
-
-        while ws['A'+str(line)].value:
-           line=line+1
-
-        for d in datas:
-            ws['A'+str(line)]=hostname
-
-            if len(hostname)>ws.column_dimensions['A'].width:
-                ws.column_dimensions['A'].width=len(hostname)+1
-
-            asciiPosition=ord('B')
-
-            for d1 in d:
-                cell=chr(asciiPosition)+str(line)
-                cellValue=d[d1]
-
-                ws[cell]=cellValue
-
-                if len(str(cellValue))>ws.column_dimensions[chr(asciiPosition)].width:
-                    ws.column_dimensions[chr(asciiPosition)].width=len(str(cellValue))+1
-
-                asciiPosition=asciiPosition+1
-
-            line=line+1
-            countAddedLine=countAddedLine+1
-
-        wb.save(workbook)
-        result["message"]=str(countAddedLine)+" line(s) added"
-        result["changed"]=True
-    #endregion
-
-    wb.close()
-    module.exit_json(**result)
 
 if __name__ == '__main__':
     main()

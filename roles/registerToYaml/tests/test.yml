@@ -5,14 +5,11 @@
   tasks:
     - name: Get the status of all services
       service_facts:
-      register: services
+      register: services_list
 
-- hosts: localhost
-  
-  tasks:
     - include_role:
         name: registerToYaml
       vars:
-        inputs: "{{ services }}"
+        inputs: "{{ services_list['ansible_facts']}}"
 
 
