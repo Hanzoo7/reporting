@@ -2,7 +2,7 @@
 # tasks file for registerToYaml
 - name: ensure datas 
   writeYaml:
-    nodeName: "{{ inventory_hostname }}"
-    content: "{{ inputs }}"
+    node: "{{ node }}"
+    insertdict: "{{ insertdict }}"
     dest: "{{ file }}"
   delegate_to: localhost

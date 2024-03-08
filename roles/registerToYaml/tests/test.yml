@@ -10,6 +10,7 @@
     - include_role:
         name: registerToYaml
       vars:
-        inputs: "{{ services_list['ansible_facts']}}"
+        insertdict: "{{ services_list['ansible_facts']['services']}}"
+        node: "{{ inventory_hostname }}/services"
 
 
